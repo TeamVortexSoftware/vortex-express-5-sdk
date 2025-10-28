@@ -26,7 +26,7 @@ configureVortex({
     return user ? {
       userId: user.id,
       identifiers: [{ type: 'email', value: user.email }],
-      groups: user.groups, // [{ type: 'team', id: '123', name: 'My Team' }]
+      groups: user.groups, // [{ type: 'team', groupId: '123', name: 'My Team' }]
     } : null;
   },
 
@@ -134,7 +134,7 @@ configureVortex({
     return user ? {
       userId: user.id,
       identifiers: [{ type: 'email', value: user.email }],
-      groups: user.groups, // [{ type: 'team', id: '123', name: 'My Team' }]
+      groups: user.groups, // [{ type: 'team', groupId: '123', name: 'My Team' }]
     } : null;
   },
 
@@ -183,7 +183,7 @@ configureVortex({
 
   canAccessInvitationsByGroup: async (req, res, user, resource) => {
     return user?.groups.some(g =>
-      g.type === resource?.groupType && g.id === resource?.groupId
+      g.type === resource?.groupType && g.groupId === resource?.groupId
     );
   },
 
