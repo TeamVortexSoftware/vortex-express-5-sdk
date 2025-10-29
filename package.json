@@ -18,10 +18,10 @@
   "scripts": {
     "prepack": "echo 'This package should not be published. Use publish:stg or publish:prod' && exit 1",
     "build:stg": "pnpm run distclean && pnpm run build && mkdir -p dist.d/stg && mv dist dist.d/stg && echo && echo 'Build in ./dist.d/stg'",
-    "prepublish:stg": "cp ./LICENSE ./README.md ./dist.d/stg/ && jq '.name = \"@teamvortexsoftware/vortex-express-5-sdk-stg\" | .description = \"Vortex Express 5 SDK (STG)\" | del(.scripts.prepack)' ./package.json > ./dist.d/stg/package.json",
+    "prepublish:stg": "cp ./LICENSE ./README.md ./dist.d/stg/ && jq '.name = \"@teamvortexsoftware/vortex-express-5-sdk-stg\" | .description = \"Vortex Express 5 SDK (STG)\" | del(.devDependencies.\"@teamvortexsoftware/eslint-config\") | del(.devDependencies.\"@teamvortexsoftware/typescript-config\") | .dependencies.\"@teamvortexsoftware/vortex-node-22-sdk\" = \"^0.0.3\" | del(.scripts.prepack)' ./package.json > ./dist.d/stg/package.json",
     "publish:stg": "pnpm run prepublish:stg && npm publish  --userconfig ../../.npmrc --access restricted ./dist.d/stg",
     "build:prod": "pnpm run distclean && pnpm run build && mkdir -p dist.d/prod && mv dist dist.d/prod && echo && echo 'Build in ./dist.d/prod'",
-    "prepublish:prod": "cp ./LICENSE ./README.md ./dist.d/prod/ && jq 'del(.scripts.prepack)' ./package.json > ./dist.d/prod/package.json",
+    "prepublish:prod": "cp ./LICENSE ./README.md ./dist.d/prod/ && jq 'del(.devDependencies.\"@teamvortexsoftware/eslint-config\") | del(.devDependencies.\"@teamvortexsoftware/typescript-config\") | .dependencies.\"@teamvortexsoftware/vortex-node-22-sdk\" = \"^0.0.3\" | del(.scripts.prepack)' ./package.json > ./dist.d/prod/package.json",
     "publish:prod": "pnpm run prepublish:prod && npm publish  --userconfig ../../.npmrc --access public ./dist.d/prod",
     "check-types": "tsc --noEmit",
     "distclean": "rm -rf ./dist ./dist.d",
