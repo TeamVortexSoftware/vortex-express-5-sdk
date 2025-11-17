@@ -2,9 +2,16 @@ import { Request, Response } from 'express';
 
 export interface AuthenticatedUser {
   userId: string;
-  identifiers: { type: 'email' | 'sms'; value: string }[];
-  groups: { type: string; id?: string; groupId?: string; name: string }[];
+  userEmail?: string;
+  adminScopes?: string[];
+
+  // Legacy fields (deprecated but still supported for backward compatibility)
+  identifiers?: { type: 'email' | 'sms'; value: string }[];
+  groups?: { type: string; id?: string; groupId?: string; name: string }[];
   role?: string;
+
+  // Optional custom attributes
+  attributes?: Record<string, any>;
 }
 
 // Resource types for access control hooks

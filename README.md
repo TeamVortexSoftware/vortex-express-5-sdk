@@ -16,17 +16,17 @@ import { createVortexRouter, configureVortex, createAllowAllAccessControl } from
 
 const app = express();
 
-// Configure Vortex
+// Configure Vortex with new simplified format (recommended)
 configureVortex({
   apiKey: process.env.VORTEX_API_KEY!,
 
-  // Required: How to authenticate users
+  // Required: How to authenticate users (new simplified format)
   authenticateUser: async (req, res) => {
     const user = await getCurrentUser(req); // Your auth logic
     return user ? {
       userId: user.id,
-      identifiers: [{ type: 'email', value: user.email }],
-      groups: user.groups, // [{ type: 'team', groupId: '123', name: 'My Team' }]
+      userEmail: user.email,
+      adminScopes: user.isAdmin ? ['autoJoin'] : [], // Optional: grant admin capabilities
     } : null;
   },
 
@@ -122,23 +122,47 @@ VORTEX_API_KEY=your_api_key_here
 
 ### 2. Basic Configuration
 
+#### New Simplified Format (Recommended)
+
 ```typescript
 import { configureVortex, createAllowAllAccessControl } from '@teamvortexsoftware/vortex-express-5-sdk';
 
 configureVortex({
   apiKey: process.env.VORTEX_API_KEY!,
 
-  // Required: How to authenticate users
+  // Required: How to authenticate users (new simplified format)
   authenticateUser: async (req, res) => {
     const user = await getCurrentUser(req); // Your auth logic
     return user ? {
       userId: user.id,
-      identifiers: [{ type: 'email', value: user.email }],
-      groups: user.groups, // [{ type: 'team', groupId: '123', name: 'My Team' }]
+      userEmail: user.email,
+      adminScopes: user.isAdmin ? ['autoJoin'] : [], // Optional: grant admin capabilities
     } : null;
   },
 
   // Simple: Allow all operations (customize for production)
+  ...createAllowAllAccessControl(),
+});
+```
+
+#### Legacy Format (Deprecated)
+
+The legacy format is still supported for backward compatibility:
+
+```typescript
+configureVortex({
+  apiKey: process.env.VORTEX_API_KEY!,
+
+  authenticateUser: async (req, res) => {
+    const user = await getCurrentUser(req);
+    return user ? {
+      userId: user.id,
+      identifiers: [{ type: 'email', value: user.email }],
+      groups: user.groups, // [{ type: 'team', groupId: '123', name: 'My Team' }]
+      role: user.role, // Optional
+    } : null;
+  },
+
   ...createAllowAllAccessControl(),
 });
 ```
@@ -158,8 +182,8 @@ configureVortexLazy(async () => ({
     const user = await getUserFromDatabase(req);
     return user ? {
       userId: user.id,
-      identifiers: [{ type: 'email', value: user.email }],
-      groups: await getUserGroups(user.id),
+      userEmail: user.email,
+      adminScopes: await checkUserAdminStatus(user.id) ? ['autoJoin'] : [],
     } : null;
   },
 
