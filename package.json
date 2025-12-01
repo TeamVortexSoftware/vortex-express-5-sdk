@@ -2,7 +2,7 @@
   "name": "@teamvortexsoftware/vortex-express-5-sdk",
   "description": "Drop-in Express module for Vortex API integration",
   "author": "@teamvortexsoftware",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
