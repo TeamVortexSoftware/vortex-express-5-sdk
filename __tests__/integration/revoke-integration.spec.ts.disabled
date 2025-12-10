@@ -1,0 +1,240 @@
+/**
+ * Revoke Integration test for Vortex Express 5 SDK
+ * Tests the revoke flow: Create -> Get -> Revoke invitation
+ */
+
+import { describe, test, expect, beforeAll } from "@jest/globals";
+
+describe("Vortex Express SDK Revoke Integration", () => {
+  let clientApiUrl: string;
+  let publicApiUrl: string;
+  let apiKey: string;
+  let sessionId: string;
+  let invitationId: string;
+  let testUserEmail: string;
+  let testGroupType: string;
+  let testGroupId: string;
+  let testGroupName: string;
+
+  beforeAll(() => {
+    // Validate required environment variables
+    const key = process.env.TEST_INTEGRATION_SDKS_VORTEX_API_KEY;
+    if (!key) {
+      throw new Error(
+        "Missing required environment variable: TEST_INTEGRATION_SDKS_VORTEX_API_KEY",
+      );
+    }
+    apiKey = key;
+
+    const clientUrl = process.env.TEST_INTEGRATION_SDKS_VORTEX_CLIENT_API_URL;
+    if (!clientUrl) {
+      throw new Error(
+        "Missing required environment variable: TEST_INTEGRATION_SDKS_VORTEX_CLIENT_API_URL",
+      );
+    }
+    clientApiUrl = clientUrl;
+
+    const publicUrl = process.env.TEST_INTEGRATION_SDKS_VORTEX_PUBLIC_API_URL;
+    if (!publicUrl) {
+      throw new Error(
+        "Missing required environment variable: TEST_INTEGRATION_SDKS_VORTEX_PUBLIC_API_URL",
+      );
+    }
+    publicApiUrl = publicUrl;
+
+    const session = process.env.TEST_INTEGRATION_SDKS_VORTEX_SESSION_ID;
+    if (!session) {
+      throw new Error(
+        "Missing required environment variable: TEST_INTEGRATION_SDKS_VORTEX_SESSION_ID",
+      );
+    }
+    sessionId = session;
+
+    const userEmail = process.env.TEST_INTEGRATION_SDKS_USER_EMAIL;
+    if (!userEmail) {
+      throw new Error(
+        "Missing required environment variable: TEST_INTEGRATION_SDKS_USER_EMAIL",
+      );
+    }
+    testUserEmail = userEmail.replace("{timestamp}", Date.now().toString());
+
+    const groupType = process.env.TEST_INTEGRATION_SDKS_GROUP_TYPE;
+    if (!groupType) {
+      throw new Error(
+        "Missing required environment variable: TEST_INTEGRATION_SDKS_GROUP_TYPE",
+      );
+    }
+    testGroupType = groupType;
+
+    const groupName = process.env.TEST_INTEGRATION_SDKS_GROUP_NAME;
+    if (!groupName) {
+      throw new Error(
+        "Missing required environment variable: TEST_INTEGRATION_SDKS_GROUP_NAME",
+      );
+    }
+    testGroupName = groupName;
+
+    // TEST_INTEGRATION_SDKS_GROUP_ID is dynamic - generated from timestamp
+    testGroupId = `test-group-${Date.now()}`;
+  });
+
+  test("Revoke invitation flow", async () => {
+    if (!apiKey) {
+      console.log("⚠️  Test skipped - environment not configured");
+      return;
+    }
+
+    console.log("\n--- Starting Express SDK Revoke Integration Test ---");
+
+    // Step 1: Create invitation
+    console.log("Step 1: Creating invitation...");
+    invitationId = await createInvitation();
+    expect(invitationId).toBeTruthy();
+    console.log(`✓ Created invitation: ${invitationId}`);
+
+    // Step 2: Get invitation
+    console.log("Step 2: Getting invitation...");
+    const invitations = await getInvitations();
+    expect(invitations).toBeDefined();
+    expect(invitations.length).toBeGreaterThan(0);
+    console.log("✓ Retrieved invitation successfully");
+
+    // Step 3: Revoke invitation
+    console.log("Step 3: Revokeing invitation...");
+    await revokeInvitation();
+    console.log("✓ Revoked invitation successfully");
+
+    console.log("--- Express SDK Revoke Integration Test Complete ---\n");
+  }, 30000);
+
+  async function createInvitation(): Promise<string> {
+    // Generate JWT for authentication
+    const { Vortex } = await import("@teamvortexsoftware/vortex-node-22-sdk");
+    const vortex = new Vortex(apiKey);
+    const testUserId = process.env.TEST_INTEGRATION_SDKS_USER_ID;
+    if (!testUserId) {
+      throw new Error(
+        "Missing required environment variable: TEST_INTEGRATION_SDKS_USER_ID",
+      );
+    }
+    const jwt = vortex.generateJwt({
+      user: {
+        id: testUserId,
+        email: testUserEmail,
+      },
+    });
+
+    // Step 1: Fetch widget configuration to get the widget configuration ID and sessionAttestation
+    const componentId = process.env.TEST_INTEGRATION_SDKS_VORTEX_COMPONENT_ID;
+    if (!componentId) {
+      throw new Error(
+        "Missing required environment variable: TEST_INTEGRATION_SDKS_VORTEX_COMPONENT_ID",
+      );
+    }
+    const widgetResponse = await fetch(
+      `${clientApiUrl}/api/v1/widgets/${componentId}?templateVariables=lzstr:N4Ig5gTg9grgDgfQHYEMC2BTEAuEBlAEQGkACAFQwGcAXEgcWnhABoQBLJANzeowmXRZcBCCQBqUCLwAeLcI0SY0AIz4IAxrCTUcIAMxzNaOCiQBPAZl0SpGaSQCSSdQDoQAXyA`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${jwt}`,
+          "x-session-id": sessionId,
+        },
+      },
+    );
+
+    if (!widgetResponse.ok) {
+      throw new Error(
+        `Failed to fetch widget configuration: ${widgetResponse.status} ${await widgetResponse.text()}`,
+      );
+    }
+
+    const widgetData: any = await widgetResponse.json();
+    const widgetConfigId = widgetData?.data?.widgetConfiguration?.id;
+    const sessionAttestation = widgetData?.data?.sessionAttestation;
+
+    if (!widgetConfigId) {
+      throw new Error("Widget configuration ID not found in response");
+    }
+
+    if (!sessionAttestation) {
+      throw new Error("Session attestation not found in widget response");
+    }
+
+    console.log(`Using widget configuration ID: ${widgetConfigId}`);
+
+    // Now use the session attestation for subsequent requests
+    const headers = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${jwt}`,
+      "x-session-id": sessionId,
+      "x-session-attestation": sessionAttestation,
+    };
+
+    // Step 2: Create invitation with the widget configuration ID
+    const response = await fetch(`${clientApiUrl}/api/v1/invitations`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        payload: {
+          emails: {
+            value: testUserEmail,
+            type: "email",
+            role: "member",
+          },
+        },
+        group: {
+          type: testGroupType,
+          groupId: testGroupId,
+          name: testGroupName,
+        },
+        source: "email",
+        templateVariables: {
+          group_name: "SDK Test Group",
+          inviter_name: "Dr Vortex",
+          group_member_count: "3",
+          company_name: "Vortex Inc.",
+        },        widgetConfigurationId: widgetConfigId,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        `Create invitation failed: ${response.status} ${await response.text()}`,
+      );
+    }
+
+    const result: any = await response.json();
+    // The API returns the full widget configuration with invitation entries
+    const invitationId = result?.data?.invitationEntries?.[0]?.id || result.id;
+
+    if (invitationId) {
+      console.log(`Successfully extracted invitation ID: ${invitationId}`);
+    }
+
+    return invitationId;
+  }
+
+  async function getInvitations(): Promise<any[]> {
+    const response = await fetch(
+      `${publicApiUrl}/api/v1/invitations?targetType=email&targetValue=${encodeURIComponent(testUserEmail)}`,
+      {
+        headers: {
+          "x-api-key": apiKey,
+        },
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error(`Get invitations failed: ${response.status}`);
+    }
+
+    const result: any = await response.json();
+    return result.invitations || [];
+  }
+
+  async function revokeInvitation(): Promise<void> {
+    const { Vortex } = await import("@teamvortexsoftware/vortex-node-22-sdk");
+    const vortex = new Vortex(apiKey);
+    await vortex.revokeInvitation(invitationId);
+  }
+});

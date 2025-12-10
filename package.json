@@ -17,10 +17,10 @@
   ],
   "scripts": {
     "prepack": "echo 'This package should not be published. Use publish:stg or publish:prod' && exit 1",
-    "build:stg": "pnpm run distclean && pnpm run build && mkdir -p dist.d/stg && mv dist dist.d/stg && echo && echo 'Build in ./dist.d/stg'",
+    "build:stg": "pnpm run distclean && turbo run build --filter=@teamvortexsoftware/vortex-express-5-sdk && mkdir -p dist.d/stg && mv dist dist.d/stg && echo && echo 'Build in ./dist.d/stg'",
     "prepublish:stg": "cp ./LICENSE ./README.md ./dist.d/stg/ && NODE_SDK_VERSION=$(jq -r '.version' ../vortex-node-22-sdk/package.json) && jq --arg nodeVer \"^$NODE_SDK_VERSION\" '.name = \"@teamvortexsoftware/vortex-express-5-sdk-stg\" | .description = \"Vortex Express 5 SDK (STG)\" | del(.devDependencies.\"@teamvortexsoftware/eslint-config\") | del(.devDependencies.\"@teamvortexsoftware/typescript-config\") | .dependencies.\"@teamvortexsoftware/vortex-node-22-sdk\" = $nodeVer | del(.scripts.prepack)' ./package.json > ./dist.d/stg/package.json",
     "publish:stg": "pnpm run prepublish:stg && pnpm publish --access restricted ./dist.d/stg",
-    "build:prod": "pnpm run distclean && pnpm run build && mkdir -p dist.d/prod && mv dist dist.d/prod && echo && echo 'Build in ./dist.d/prod'",
+    "build:prod": "pnpm run distclean && turbo run build --filter=@teamvortexsoftware/vortex-express-5-sdk && mkdir -p dist.d/prod && mv dist dist.d/prod && echo && echo 'Build in ./dist.d/prod'",
     "prepublish:prod": "cp ./LICENSE ./README.md ./dist.d/prod/ && NODE_SDK_VERSION=$(jq -r '.version' ../vortex-node-22-sdk/package.json) && jq --arg nodeVer \"^$NODE_SDK_VERSION\" 'del(.devDependencies.\"@teamvortexsoftware/eslint-config\") | del(.devDependencies.\"@teamvortexsoftware/typescript-config\") | .dependencies.\"@teamvortexsoftware/vortex-node-22-sdk\" = $nodeVer | del(.scripts.prepack)' ./package.json > ./dist.d/prod/package.json",
     "publish:prod": "pnpm run prepublish:prod && pnpm publish --access public ./dist.d/prod",
     "check-types": "tsc --noEmit",
@@ -29,7 +29,7 @@
     "dev": "",
     "test": "jest",
     "package": "pnpm run build && cd dist/vortex-express-5-sdk && npm pack",
-    "build": "cd ../vortex-node-22-sdk && pnpm run build && cd ../vortex-express-5-sdk && tsc -b tsconfig.json"
+    "build": "tsc -b tsconfig.json"
   },
   "jest": {
     "rootDir": "__tests__",
@@ -48,13 +48,13 @@
     "@jest/globals": "29.7.0",
     "@teamvortexsoftware/eslint-config": "workspace:*",
     "@teamvortexsoftware/typescript-config": "workspace:*",
-    "eslint": "catalog:",
-    "jest": "29.7.0",
-    "typescript-eslint": "catalog:",
-    "express": "^5.1.0",
     "@types/express": "^4.17.21",
-    "@types/node": "^20.0.0",
-    "typescript": "^5.0.0"
+    "@types/node": "catalog:",
+    "eslint": "catalog:",
+    "express": "^5.1.0",
+    "jest": "29.7.0",
+    "ts-jest": "catalog:",
+    "typescript-eslint": "catalog:"
   },
   "dependencies": {
     "@teamvortexsoftware/vortex-node-22-sdk": "workspace:*"

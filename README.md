@@ -12,7 +12,11 @@ npm install @teamvortexsoftware/vortex-express-5-sdk @teamvortexsoftware/vortex-
 
 ```typescript
 import express from 'express';
-import { createVortexRouter, configureVortex, createAllowAllAccessControl } from '@teamvortexsoftware/vortex-express-5-sdk';
+import {
+  createVortexRouter,
+  configureVortex,
+  createAllowAllAccessControl,
+} from '@teamvortexsoftware/vortex-express-5-sdk';
 
 const app = express();
 
@@ -23,11 +27,13 @@ configureVortex({
   // Required: How to authenticate users (new simplified format)
   authenticateUser: async (req, res) => {
     const user = await getCurrentUser(req); // Your auth logic
-    return user ? {
-      userId: user.id,
-      userEmail: user.email,
-      adminScopes: user.isAdmin ? ['autoJoin'] : [], // Optional: grant admin capabilities
-    } : null;
+    return user
+      ? {
+          userId: user.id,
+          userEmail: user.email,
+          adminScopes: user.isAdmin ? ['autojoin'] : [], // Optional: grant admin capabilities
+        }
+      : null;
   },
 
   // Simple: Allow all operations (customize for production)
@@ -57,14 +63,14 @@ That's it! Your Express app now has all Vortex API endpoints.
 
 Your app automatically gets these API routes:
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/vortex/jwt` | POST | Generate JWT for authenticated user |
-| `/api/vortex/invitations` | GET | Get invitations by target (email/phone) |
-| `/api/vortex/invitations/accept` | POST | Accept multiple invitations |
-| `/api/vortex/invitations/:id` | GET/DELETE | Get or delete specific invitation |
-| `/api/vortex/invitations/:id/reinvite` | POST | Resend invitation |
-| `/api/vortex/invitations/by-group/:type/:id` | GET/DELETE | Group-based operations |
+| Endpoint                                     | Method     | Description                             |
+| -------------------------------------------- | ---------- | --------------------------------------- |
+| `/api/vortex/jwt`                            | POST       | Generate JWT for authenticated user     |
+| `/api/vortex/invitations`                    | GET        | Get invitations by target (email/phone) |
+| `/api/vortex/invitations/accept`             | POST       | Accept multiple invitations             |
+| `/api/vortex/invitations/:id`                | GET/DELETE | Get or delete specific invitation       |
+| `/api/vortex/invitations/:id/reinvite`       | POST       | Resend invitation                       |
+| `/api/vortex/invitations/by-group/:type/:id` | GET/DELETE | Group-based operations                  |
 
 ## 🛠️ Setup Options
 
@@ -116,6 +122,7 @@ app.delete('/api/vortex/invitations/:invitationId', routes.invitation.delete);
 ### 1. Environment Variables
 
 Add to your `.env`:
+
 ```bash
 VORTEX_API_KEY=your_api_key_here
 ```
@@ -125,7 +132,10 @@ VORTEX_API_KEY=your_api_key_here
 #### New Simplified Format (Recommended)
 
 ```typescript
-import { configureVortex, createAllowAllAccessControl } from '@teamvortexsoftware/vortex-express-5-sdk';
+import {
+  configureVortex,
+  createAllowAllAccessControl,
+} from '@teamvortexsoftware/vortex-express-5-sdk';
 
 configureVortex({
   apiKey: process.env.VORTEX_API_KEY!,
@@ -133,11 +143,13 @@ configureVortex({
   // Required: How to authenticate users (new simplified format)
   authenticateUser: async (req, res) => {
     const user = await getCurrentUser(req); // Your auth logic
-    return user ? {
-      userId: user.id,
-      userEmail: user.email,
-      adminScopes: user.isAdmin ? ['autoJoin'] : [], // Optional: grant admin capabilities
-    } : null;
+    return user
+      ? {
+          userId: user.id,
+          userEmail: user.email,
+          adminScopes: user.isAdmin ? ['autojoin'] : [], // Optional: grant admin capabilities
+        }
+      : null;
   },
 
   // Simple: Allow all operations (customize for production)
@@ -155,12 +167,14 @@ configureVortex({
 
   authenticateUser: async (req, res) => {
     const user = await getCurrentUser(req);
-    return user ? {
-      userId: user.id,
-      identifiers: [{ type: 'email', value: user.email }],
-      groups: user.groups, // [{ type: 'team', groupId: '123', name: 'My Team' }]
-      role: user.role, // Optional
-    } : null;
+    return user
+      ? {
+          userId: user.id,
+          identifiers: [{ type: 'email', value: user.email }],
+          groups: user.groups, // [{ type: 'team', groupId: '123', name: 'My Team' }]
+          role: user.role, // Optional
+        }
+      : null;
   },
 
   ...createAllowAllAccessControl(),
@@ -180,11 +194,13 @@ configureVortexLazy(async () => ({
   authenticateUser: async (req, res) => {
     // This can make database calls, etc.
     const user = await getUserFromDatabase(req);
-    return user ? {
-      userId: user.id,
-      userEmail: user.email,
-      adminScopes: await checkUserAdminStatus(user.id) ? ['autoJoin'] : [],
-    } : null;
+    return user
+      ? {
+          userId: user.id,
+          userEmail: user.email,
+          adminScopes: (await checkUserAdminStatus(user.id)) ? ['autojoin'] : [],
+        }
+      : null;
   },
 
   ...createAllowAllAccessControl(),
@@ -198,7 +214,9 @@ For production apps, replace `createAllowAllAccessControl()` with proper authori
 ```typescript
 configureVortex({
   apiKey: process.env.VORTEX_API_KEY!,
-  authenticateUser: async (req, res) => { /* your auth */ },
+  authenticateUser: async (req, res) => {
+    /* your auth */
+  },
 
   // Custom access control
   canDeleteInvitation: async (req, res, user, resource) => {
@@ -206,8 +224,8 @@ configureVortex({
   },
 
   canAccessInvitationsByGroup: async (req, res, user, resource) => {
-    return user?.groups.some(g =>
-      g.type === resource?.groupType && g.groupId === resource?.groupId
+    return user?.groups.some(
+      (g) => g.type === resource?.groupType && g.groupId === resource?.groupId
     );
   },
 
@@ -260,14 +278,14 @@ await fetch(`/api/vortex/invitations/${invitationId}`, { method: 'DELETE' });
 
 ## 🔄 Comparison with Next.js SDK
 
-| Feature | Express SDK | Next.js SDK |
-|---------|-------------|-------------|
-| **Setup** | `createVortexRouter()` | Multiple route files |
-| **Routes** | Express Router | Next.js App Router |
-| **Config** | Same API | Same API |
-| **Access Control** | Same API | Same API |
-| **Frontend Integration** | Same React Provider | Same React Provider |
-| **Deployment** | Any Express host | Vercel/Next.js hosts |
+| Feature                  | Express SDK            | Next.js SDK          |
+| ------------------------ | ---------------------- | -------------------- |
+| **Setup**                | `createVortexRouter()` | Multiple route files |
+| **Routes**               | Express Router         | Next.js App Router   |
+| **Config**               | Same API               | Same API             |
+| **Access Control**       | Same API               | Same API             |
+| **Frontend Integration** | Same React Provider    | Same React Provider  |
+| **Deployment**           | Any Express host       | Vercel/Next.js hosts |
 
 ## 📦 Direct SDK Usage
 
@@ -314,18 +332,22 @@ app.get('/api/custom-invitation/:invitationId', async (req, res) => {
 ### Common Issues
 
 **"Request body is empty or not parsed"**
+
 - Make sure you're using `app.use(express.json())` before registering Vortex routes
 
 **Configuration errors**
+
 - Ensure you're calling `configureVortex()` or `configureVortexLazy()` before starting your server
 - Check that your `.env` has `VORTEX_API_KEY`
 
 **Authentication Issues**
+
 - Verify your `authenticateUser` function returns the correct format
 - Check that your authentication middleware is working
 - Make sure JWT requests include authentication cookies/headers
 
 **TypeScript Errors**
+
 - All types are exported from the main package
 - Resource parameters are fully typed for access control hooks
 
