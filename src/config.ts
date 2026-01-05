@@ -21,9 +21,14 @@ export interface InvitationResource {
 
 export interface InvitationTargetResource {
   invitationIds: string[];
-  target: {
+  target?: {
     type: string;
     value: string;
+  };
+  user?: {
+    email?: string;
+    phone?: string;
+    name?: string;
   };
 }
 

@@ -119,9 +119,8 @@ export async function handleAcceptInvitations(req: Request, res: Response) {
     }
 
     const body = await parseRequestBody(req) as Record<string, unknown>;
-    validateRequiredFields(body, ['invitationIds', 'target']);
 
-    const { invitationIds, target } = body;
+    const { invitationIds, target, user } = body;
 
     if (!Array.isArray(invitationIds) || invitationIds.length === 0) {
       return createErrorResponse(res, 'invitationIds must be a non-empty array', 400);
@@ -133,37 +132,61 @@ export async function handleAcceptInvitations(req: Request, res: Response) {
       return createErrorResponse(res, 'Invalid invitation IDs provided', 400);
     }
 
-    // Type assertion for target since we validate it below
-    const targetObj = target as { type?: string; value?: string };
-
-    if (!targetObj.type || !targetObj.value) {
-      return createErrorResponse(res, 'target must have type and value properties', 400);
+    // Support both new format (user) and legacy format (target)
+    if (!user && !target) {
+      return createErrorResponse(res, 'Either user or target must be provided', 400);
     }
 
-    if (!['email', 'username', 'phoneNumber'].includes(targetObj.type)) {
-      return createErrorResponse(res, 'target.type must be email, username, or phoneNumber', 400);
-    }
+    let acceptData: any;
 
-    // Now we know type and value are defined
-    const validatedTarget = { type: targetObj.type, value: targetObj.value } as { type: 'email' | 'username' | 'phoneNumber'; value: string };
+    if (user) {
+      // New format: user object with email/phone
+      const userObj = user as { email?: string; phone?: string; name?: string };
+      if (!userObj.email && !userObj.phone) {
+        return createErrorResponse(res, 'user must have either email or phone', 400);
+      }
+      acceptData = {
+        email: userObj.email ? sanitizeInput(userObj.email) : undefined,
+        phone: userObj.phone ? sanitizeInput(userObj.phone) : undefined,
+        name: userObj.name ? sanitizeInput(userObj.name) : undefined,
+      };
+    } else {
+      // Legacy format: target object
+      const targetObj = target as { type?: string; value?: string };
+
+      if (!targetObj.type || !targetObj.value) {
+        return createErrorResponse(res, 'target must have type and value properties', 400);
+      }
+
+      if (!['email', 'username', 'phoneNumber', 'sms'].includes(targetObj.type)) {
+        return createErrorResponse(res, 'target.type must be email, username, phoneNumber, or sms', 400);
+      }
+
+      acceptData = {
+        type: targetObj.type,
+        value: sanitizeInput(targetObj.value) || targetObj.value
+      };
+    }
 
     const config = await getVortexConfig();
-    const user = await authenticateRequest(req, res);
+    const authenticatedUser = await authenticateRequest(req, res);
 
     if (config.canAcceptInvitations) {
-      const hasAccess = await config.canAcceptInvitations(req, res, user, { invitationIds: sanitizedIds, target: validatedTarget });
+      const resource = {
+        invitationIds: sanitizedIds,
+        target: target as { type: string; value: string } | undefined,
+        user: user as { email?: string; phone?: string; name?: string } | undefined,
+      };
+      const hasAccess = await config.canAcceptInvitations(req, res, authenticatedUser, resource);
       if (!hasAccess) {
         return createErrorResponse(res, 'Access denied', 403);
       }
-    } else if (!user) {
+    } else if (!authenticatedUser) {
       return createErrorResponse(res, 'Access denied. Configure access control hooks for invitation endpoints.', 403);
     }
 
     const vortex = new Vortex(config.apiKey);
-    const result = await vortex.acceptInvitations(sanitizedIds, {
-      type: validatedTarget.type,
-      value: sanitizeInput(validatedTarget.value) || validatedTarget.value
-    });
+    const result = await vortex.acceptInvitations(sanitizedIds, acceptData);
     return createApiResponse(res, result);
   } catch (error) {
     console.error('Error in handleAcceptInvitations:', error);
