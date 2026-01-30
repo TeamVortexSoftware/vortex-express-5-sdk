@@ -33,8 +33,8 @@ export async function handleJwtGeneration(req: Request, res: Response) {
       user: {
         id: authenticatedUser.userId,
         email: authenticatedUser.userEmail,
-        ...(authenticatedUser.name && { name: authenticatedUser.name }),
-        ...(authenticatedUser.avatarUrl && { avatarUrl: authenticatedUser.avatarUrl }),
+        ...(authenticatedUser.userName && { userName: authenticatedUser.userName }),
+        ...(authenticatedUser.userAvatarUrl && { userAvatarUrl: authenticatedUser.userAvatarUrl }),
         ...(authenticatedUser.adminScopes && authenticatedUser.adminScopes.length > 0 && {
           adminScopes: authenticatedUser.adminScopes
         }),

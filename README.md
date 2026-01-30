@@ -46,6 +46,8 @@ configureVortex({
       ? {
           userId: user.id,
           userEmail: user.email,
+          userName: user.userName,           // Optional: user's display name
+          userAvatarUrl: user.userAvatarUrl, // Optional: user's avatar URL
           adminScopes: user.isAdmin ? ['autojoin'] : [], // Optional: grant admin capabilities
         }
       : null;
@@ -162,6 +164,8 @@ configureVortex({
       ? {
           userId: user.id,
           userEmail: user.email,
+          userName: user.userName,           // Optional: user's display name
+          userAvatarUrl: user.userAvatarUrl, // Optional: user's avatar URL
           adminScopes: user.isAdmin ? ['autojoin'] : [], // Optional: grant admin capabilities
         }
       : null;
@@ -213,6 +217,8 @@ configureVortexLazy(async () => ({
       ? {
           userId: user.id,
           userEmail: user.email,
+          userName: user.userName,           // Optional: user's display name
+          userAvatarUrl: user.userAvatarUrl, // Optional: user's avatar URL
           adminScopes: (await checkUserAdminStatus(user.id)) ? ['autojoin'] : [],
         }
       : null;
