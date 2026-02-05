@@ -33,7 +33,7 @@ export function createVortexApiPath(baseUrl: string, route: keyof typeof VORTEX_
 /**
  * Creates individual route handlers for JWT endpoint
  */
-export function createVortexJwtRoute() {
+export function createVortexJwtRoute(): (req: Request, res: Response) => Promise<Response> {
   return async function(req: Request, res: Response) {
     return handleJwtGeneration(req, res);
   };
@@ -42,7 +42,7 @@ export function createVortexJwtRoute() {
 /**
  * Creates individual route handlers for invitations endpoint
  */
-export function createVortexInvitationsRoute() {
+export function createVortexInvitationsRoute(): (req: Request, res: Response) => Promise<Response> {
   return async function(req: Request, res: Response) {
     return handleGetInvitationsByTarget(req, res);
   };
@@ -51,7 +51,10 @@ export function createVortexInvitationsRoute() {
 /**
  * Creates individual route handlers for single invitation endpoint
  */
-export function createVortexInvitationRoute() {
+export function createVortexInvitationRoute(): {
+  get: (req: Request, res: Response) => Promise<Response>;
+  delete: (req: Request, res: Response) => Promise<Response>;
+} {
   return {
     get: async function(req: Request, res: Response) {
       return handleGetInvitation(req, res);
@@ -65,7 +68,7 @@ export function createVortexInvitationRoute() {
 /**
  * Creates individual route handlers for invitations accept endpoint
  */
-export function createVortexInvitationsAcceptRoute() {
+export function createVortexInvitationsAcceptRoute(): (req: Request, res: Response) => Promise<Response> {
   return async function(req: Request, res: Response) {
     return handleAcceptInvitations(req, res);
   };
@@ -74,7 +77,10 @@ export function createVortexInvitationsAcceptRoute() {
 /**
  * Creates individual route handlers for invitations by group endpoint
  */
-export function createVortexInvitationsByGroupRoute() {
+export function createVortexInvitationsByGroupRoute(): {
+  get: (req: Request, res: Response) => Promise<Response>;
+  delete: (req: Request, res: Response) => Promise<Response>;
+} {
   return {
     get: async function(req: Request, res: Response) {
       return handleGetInvitationsByGroup(req, res);
@@ -88,7 +94,7 @@ export function createVortexInvitationsByGroupRoute() {
 /**
  * Creates individual route handlers for reinvite endpoint
  */
-export function createVortexReinviteRoute() {
+export function createVortexReinviteRoute(): (req: Request, res: Response) => Promise<Response> {
   return async function(req: Request, res: Response) {
     return handleReinvite(req, res);
   };
@@ -98,7 +104,20 @@ export function createVortexReinviteRoute() {
  * Creates all Vortex routes for easy registration
  * This provides individual handlers that can be attached to specific routes
  */
-export function createVortexRoutes() {
+export function createVortexRoutes(): {
+  jwt: (req: Request, res: Response) => Promise<Response>;
+  invitations: (req: Request, res: Response) => Promise<Response>;
+  invitation: {
+    get: (req: Request, res: Response) => Promise<Response>;
+    delete: (req: Request, res: Response) => Promise<Response>;
+  };
+  invitationsAccept: (req: Request, res: Response) => Promise<Response>;
+  invitationsByGroup: {
+    get: (req: Request, res: Response) => Promise<Response>;
+    delete: (req: Request, res: Response) => Promise<Response>;
+  };
+  invitationReinvite: (req: Request, res: Response) => Promise<Response>;
+} {
   return {
     jwt: createVortexJwtRoute(),
     invitations: createVortexInvitationsRoute(),

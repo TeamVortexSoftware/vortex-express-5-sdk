@@ -23,7 +23,7 @@
     "build:prod": "pnpm run distclean && turbo run build --filter=@teamvortexsoftware/vortex-express-5-sdk && mkdir -p dist.d/prod && mv dist dist.d/prod && echo && echo 'Build in ./dist.d/prod'",
     "prepublish:prod": "cp ./LICENSE ./README.md ./dist.d/prod/ && NODE_SDK_VERSION=$(jq -r '.version' ../vortex-node-22-sdk/package.json) && jq --arg nodeVer \"^$NODE_SDK_VERSION\" 'del(.devDependencies.\"@teamvortexsoftware/eslint-config\") | del(.devDependencies.\"@teamvortexsoftware/typescript-config\") | .dependencies.\"@teamvortexsoftware/vortex-node-22-sdk\" = $nodeVer | del(.scripts.prepack)' ./package.json > ./dist.d/prod/package.json",
     "publish:prod": "pnpm run prepublish:prod && pnpm publish --access public ./dist.d/prod",
-    "check-types": "tsc --noEmit",
+    "check-types": "tsgo --noEmit",
     "distclean": "rm -rf ./dist ./dist.d",
     "clean": "rm -rf ./dist",
     "dev": "",
