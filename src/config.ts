@@ -6,6 +6,12 @@ export interface AuthenticatedUser {
   userName?: string;
   userAvatarUrl?: string;
   adminScopes?: string[];
+  /**
+   * Optional list of allowed email domains for invitation restrictions.
+   * When present, email invitations will only be allowed to addresses
+   * matching one of these domains (e.g., ['acme.com', 'acme.org']).
+   */
+  allowedEmailDomains?: string[];
 
   // Legacy fields (deprecated but still supported for backward compatibility)
   identifiers?: { type: 'email' | 'phone'; value: string }[];

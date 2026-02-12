@@ -38,6 +38,9 @@ export async function handleJwtGeneration(req: Request, res: Response) {
         ...(authenticatedUser.adminScopes && authenticatedUser.adminScopes.length > 0 && {
           adminScopes: authenticatedUser.adminScopes
         }),
+        ...(authenticatedUser.allowedEmailDomains && authenticatedUser.allowedEmailDomains.length > 0 && {
+          allowedEmailDomains: authenticatedUser.allowedEmailDomains
+        }),
       },
     };
 
