@@ -298,6 +298,33 @@ const { invitations } = await response.json();
 await fetch(`/api/vortex/invitations/${invitationId}`, { method: 'DELETE' });
 ```
 
+### Sync Internal Invitation
+
+If you're using `internal` delivery type invitations and managing the invitation flow within your own application, you can sync invitation decisions back to Vortex when users accept or decline invitations in your system.
+
+```typescript
+// Sync an internal invitation action (accept or decline)
+const response = await fetch('/api/vortex/invitation-actions/sync-internal-invitation', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    creatorId: 'user-123',      // The inviter's user ID in your system
+    targetValue: 'user-456',    // The invitee's user ID in your system
+    action: 'accepted',         // "accepted" or "declined"
+    componentId: 'component-uuid' // The widget component UUID
+  })
+});
+
+const result = await response.json();
+// result.processed - Number of invitations processed
+// result.invitationIds - Array of processed invitation IDs
+```
+
+**Use cases:**
+- You handle invitation delivery through your own in-app notifications or UI
+- Users accept/decline invitations within your application
+- You need to keep Vortex updated with the invitation status
+
 ## 🔄 Comparison with Next.js SDK
 
 | Feature                  | Express SDK            | Next.js SDK          |
