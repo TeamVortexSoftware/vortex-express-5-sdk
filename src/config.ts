@@ -27,6 +27,13 @@ export interface InvitationResource {
   invitationId: string;
 }
 
+export interface SyncInternalInvitationResource {
+  creatorId: string;
+  targetValue: string;
+  action: string;
+  componentId: string;
+}
+
 export interface InvitationTargetResource {
   invitationIds: string[];
   target?: {
@@ -53,6 +60,7 @@ export interface AccessControlHook<T = unknown> {
 // Specific hook types for better type safety
 export type InvitationAccessHook = AccessControlHook<InvitationResource>;
 export type InvitationTargetAccessHook = AccessControlHook<InvitationTargetResource>;
+export type SyncInternalInvitationAccessHook = AccessControlHook<SyncInternalInvitationResource>;
 export type GroupAccessHook = AccessControlHook<GroupResource>;
 export type BasicAccessHook = AccessControlHook<void>;
 
@@ -68,6 +76,7 @@ export interface VortexConfig {
   canAccessInvitationsByGroup?: GroupAccessHook;
   canDeleteInvitationsByGroup?: GroupAccessHook;
   canReinvite?: InvitationAccessHook;
+  canSyncInternalInvitation?: SyncInternalInvitationAccessHook;
 }
 
 // Store configuration template (immutable after first set)
@@ -143,6 +152,7 @@ export async function getVortexConfig(): Promise<VortexConfig> {
       canAccessInvitationsByGroup: configTemplate.canAccessInvitationsByGroup,
       canDeleteInvitationsByGroup: configTemplate.canDeleteInvitationsByGroup,
       canReinvite: configTemplate.canReinvite,
+      canSyncInternalInvitation: configTemplate.canSyncInternalInvitation,
     };
   }
 
@@ -181,5 +191,6 @@ export function createAllowAllAccessControl() {
     canAccessInvitationsByGroup: allowAll,
     canDeleteInvitationsByGroup: allowAll,
     canReinvite: allowAll,
+    canSyncInternalInvitation: allowAll,
   } satisfies Partial<VortexConfig>;
 }

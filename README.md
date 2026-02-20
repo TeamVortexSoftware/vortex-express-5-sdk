@@ -87,6 +87,7 @@ Your app automatically gets these API routes:
 | `/api/vortex/invitations/accept`             | POST       | Accept multiple invitations             |
 | `/api/vortex/invitations/:id`                | GET/DELETE | Get or delete specific invitation       |
 | `/api/vortex/invitations/:id/reinvite`       | POST       | Resend invitation                       |
+| `/api/vortex/invitation-actions/sync-internal-invitation` | POST       | Sync internal invitation action         |
 | `/api/vortex/invitations/by-group/:type/:id` | GET/DELETE | Group-based operations                  |
 
 ## 🛠️ Setup Options

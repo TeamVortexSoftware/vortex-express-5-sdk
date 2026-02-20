@@ -8,6 +8,7 @@ import {
   handleGetInvitationsByGroup,
   handleDeleteInvitationsByGroup,
   handleReinvite,
+  handleSyncInternalInvitation,
 } from './handlers/invitations';
 
 /**
@@ -21,6 +22,7 @@ export const VORTEX_ROUTES = {
   INVITATIONS_ACCEPT: '/invitations/accept',
   INVITATIONS_BY_GROUP: '/invitations/by-group/:groupType/:groupId',
   INVITATION_REINVITE: '/invitations/:invitationId/reinvite',
+  SYNC_INTERNAL_INVITATION: '/invitation-actions/sync-internal-invitation',
 } as const;
 
 /**
@@ -101,6 +103,15 @@ export function createVortexReinviteRoute(): (req: Request, res: Response) => Pr
 }
 
 /**
+ * Creates individual route handlers for sync internal invitation endpoint
+ */
+export function createVortexSyncInternalInvitationRoute(): (req: Request, res: Response) => Promise<Response> {
+  return async function(req: Request, res: Response) {
+    return handleSyncInternalInvitation(req, res);
+  };
+}
+
+/**
  * Creates all Vortex routes for easy registration
  * This provides individual handlers that can be attached to specific routes
  */
@@ -117,6 +128,7 @@ export function createVortexRoutes(): {
     delete: (req: Request, res: Response) => Promise<Response>;
   };
   invitationReinvite: (req: Request, res: Response) => Promise<Response>;
+  syncInternalInvitation: (req: Request, res: Response) => Promise<Response>;
 } {
   return {
     jwt: createVortexJwtRoute(),
@@ -125,6 +137,7 @@ export function createVortexRoutes(): {
     invitationsAccept: createVortexInvitationsAcceptRoute(),
     invitationsByGroup: createVortexInvitationsByGroupRoute(),
     invitationReinvite: createVortexReinviteRoute(),
+    syncInternalInvitation: createVortexSyncInternalInvitationRoute(),
   };
 }
 
@@ -155,6 +168,7 @@ export function createVortexRouter(): Router {
   router.get(VORTEX_ROUTES.INVITATIONS_BY_GROUP, routes.invitationsByGroup.get);
   router.delete(VORTEX_ROUTES.INVITATIONS_BY_GROUP, routes.invitationsByGroup.delete);
   router.post(VORTEX_ROUTES.INVITATION_REINVITE, routes.invitationReinvite);
+  router.post(VORTEX_ROUTES.SYNC_INTERNAL_INVITATION, routes.syncInternalInvitation);
 
   return router;
 }
@@ -188,4 +202,5 @@ export function registerVortexRoutes(app: { post: (path: string, handler: (req: 
   app.get(`${cleanBasePath}${VORTEX_ROUTES.INVITATIONS_BY_GROUP}`, routes.invitationsByGroup.get);
   app.delete(`${cleanBasePath}${VORTEX_ROUTES.INVITATIONS_BY_GROUP}`, routes.invitationsByGroup.delete);
   app.post(`${cleanBasePath}${VORTEX_ROUTES.INVITATION_REINVITE}`, routes.invitationReinvite);
+  app.post(`${cleanBasePath}${VORTEX_ROUTES.SYNC_INTERNAL_INVITATION}`, routes.syncInternalInvitation);
 }
