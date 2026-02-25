@@ -22,7 +22,7 @@ export const VORTEX_ROUTES = {
   INVITATIONS_ACCEPT: '/invitations/accept',
   INVITATIONS_BY_GROUP: '/invitations/by-group/:groupType/:groupId',
   INVITATION_REINVITE: '/invitations/:invitationId/reinvite',
-  SYNC_INTERNAL_INVITATION: '/invitation-actions/sync-internal-invitation',
+  SYNC_INTERNAL_INVITATION: '/invitations/sync-internal-invitation',
 } as const;
 
 /**
