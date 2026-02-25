@@ -44,6 +44,10 @@ export {
 } from './handlers/invitations';
 
 export {
+  createVortexWebhookHandler,
+} from './handlers/webhooks';
+
+export {
   createApiResponse,
   createErrorResponse,
   parseRequestBody,
