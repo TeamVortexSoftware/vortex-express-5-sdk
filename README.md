@@ -46,8 +46,8 @@ configureVortex({
       ? {
           userId: user.id,
           userEmail: user.email,
-          userName: user.userName,           // Optional: user's display name
-          userAvatarUrl: user.userAvatarUrl, // Optional: user's avatar URL
+          name: user.name, // Optional: user's display name
+          avatarUrl: user.avatarUrl, // Optional: user's avatar URL
           adminScopes: user.isAdmin ? ['autojoin'] : [], // Optional: grant admin capabilities
         }
       : null;
@@ -80,15 +80,15 @@ That's it! Your Express app now has all Vortex API endpoints.
 
 Your app automatically gets these API routes:
 
-| Endpoint                                     | Method     | Description                             |
-| -------------------------------------------- | ---------- | --------------------------------------- |
-| `/api/vortex/jwt`                            | POST       | Generate JWT for authenticated user     |
-| `/api/vortex/invitations`                    | GET        | Get invitations by target (email/phone) |
-| `/api/vortex/invitations/accept`             | POST       | Accept multiple invitations             |
-| `/api/vortex/invitations/:id`                | GET/DELETE | Get or delete specific invitation       |
-| `/api/vortex/invitations/:id/reinvite`       | POST       | Resend invitation                       |
+| Endpoint                                           | Method     | Description                             |
+| -------------------------------------------------- | ---------- | --------------------------------------- |
+| `/api/vortex/jwt`                                  | POST       | Generate JWT for authenticated user     |
+| `/api/vortex/invitations`                          | GET        | Get invitations by target (email/phone) |
+| `/api/vortex/invitations/accept`                   | POST       | Accept multiple invitations             |
+| `/api/vortex/invitations/:id`                      | GET/DELETE | Get or delete specific invitation       |
+| `/api/vortex/invitations/:id/reinvite`             | POST       | Resend invitation                       |
 | `/api/vortex/invitations/sync-internal-invitation` | POST       | Sync internal invitation action         |
-| `/api/vortex/invitations/by-group/:type/:id` | GET/DELETE | Group-based operations                  |
+| `/api/vortex/invitations/by-group/:type/:id`       | GET/DELETE | Group-based operations                  |
 
 ## 🛠️ Setup Options
 
@@ -165,8 +165,8 @@ configureVortex({
       ? {
           userId: user.id,
           userEmail: user.email,
-          userName: user.userName,           // Optional: user's display name
-          userAvatarUrl: user.userAvatarUrl, // Optional: user's avatar URL
+          name: user.name, // Optional: user's display name
+          avatarUrl: user.avatarUrl, // Optional: user's avatar URL
           adminScopes: user.isAdmin ? ['autojoin'] : [], // Optional: grant admin capabilities
         }
       : null;
@@ -218,8 +218,8 @@ configureVortexLazy(async () => ({
       ? {
           userId: user.id,
           userEmail: user.email,
-          userName: user.userName,           // Optional: user's display name
-          userAvatarUrl: user.userAvatarUrl, // Optional: user's avatar URL
+          name: user.name, // Optional: user's display name
+          avatarUrl: user.avatarUrl, // Optional: user's avatar URL
           adminScopes: (await checkUserAdminStatus(user.id)) ? ['autojoin'] : [],
         }
       : null;
@@ -308,11 +308,11 @@ const response = await fetch('/api/vortex/invitations/sync-internal-invitation',
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
-    creatorId: 'user-123',      // The inviter's user ID in your system
-    targetValue: 'user-456',    // The invitee's user ID in your system
-    action: 'accepted',         // "accepted" or "declined"
-    componentId: 'component-uuid' // The widget component UUID
-  })
+    creatorId: 'user-123', // The inviter's user ID in your system
+    targetValue: 'user-456', // The invitee's user ID in your system
+    action: 'accepted', // "accepted" or "declined"
+    componentId: 'component-uuid', // The widget component UUID
+  }),
 });
 
 const result = await response.json();
@@ -321,6 +321,7 @@ const result = await response.json();
 ```
 
 **Use cases:**
+
 - You handle invitation delivery through your own in-app notifications or UI
 - Users accept/decline invitations within your application
 - You need to keep Vortex updated with the invitation status

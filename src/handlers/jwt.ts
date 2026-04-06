@@ -12,7 +12,11 @@ export async function handleJwtGeneration(req: Request, res: Response) {
     const config = await getVortexConfig();
 
     if (!config.authenticateUser) {
-      return createErrorResponse(res, 'JWT generation requires authentication configuration. Please configure authenticateUser hook.', 500);
+      return createErrorResponse(
+        res,
+        'JWT generation requires authentication configuration. Please configure authenticateUser hook.',
+        500
+      );
     }
 
     const authenticatedUser = await config.authenticateUser(req, res);
@@ -25,22 +29,31 @@ export async function handleJwtGeneration(req: Request, res: Response) {
 
     // Validate required fields
     if (!authenticatedUser.userId || !authenticatedUser.userEmail) {
-      return createErrorResponse(res, 'Invalid user format: must provide userId and userEmail', 500);
+      return createErrorResponse(
+        res,
+        'Invalid user format: must provide userId and userEmail',
+        500
+      );
     }
 
     // Generate JWT with new format
+    // Prefer new property names (name/avatarUrl), fall back to deprecated (userName/userAvatarUrl)
+    const userName = authenticatedUser.name ?? authenticatedUser.userName;
+    const userAvatarUrl = authenticatedUser.avatarUrl ?? authenticatedUser.userAvatarUrl;
     const jwtParams: any = {
       user: {
         id: authenticatedUser.userId,
         email: authenticatedUser.userEmail,
-        ...(authenticatedUser.userName && { userName: authenticatedUser.userName }),
-        ...(authenticatedUser.userAvatarUrl && { userAvatarUrl: authenticatedUser.userAvatarUrl }),
-        ...(authenticatedUser.adminScopes && authenticatedUser.adminScopes.length > 0 && {
-          adminScopes: authenticatedUser.adminScopes
-        }),
-        ...(authenticatedUser.allowedEmailDomains && authenticatedUser.allowedEmailDomains.length > 0 && {
-          allowedEmailDomains: authenticatedUser.allowedEmailDomains
-        }),
+        ...(userName && { name: userName }),
+        ...(userAvatarUrl && { avatarUrl: userAvatarUrl }),
+        ...(authenticatedUser.adminScopes &&
+          authenticatedUser.adminScopes.length > 0 && {
+            adminScopes: authenticatedUser.adminScopes,
+          }),
+        ...(authenticatedUser.allowedEmailDomains &&
+          authenticatedUser.allowedEmailDomains.length > 0 && {
+            allowedEmailDomains: authenticatedUser.allowedEmailDomains,
+          }),
       },
     };
 

@@ -5,8 +5,8 @@ import {
   handleGetInvitation,
   handleRevokeInvitation,
   handleAcceptInvitations,
-  handleGetInvitationsByGroup,
-  handleDeleteInvitationsByGroup,
+  handleGetInvitationsByScope,
+  handleDeleteInvitationsByScope,
   handleReinvite,
   handleSyncInternalInvitation,
 } from './handlers/invitations';
@@ -20,7 +20,9 @@ export const VORTEX_ROUTES = {
   INVITATIONS: '/invitations',
   INVITATION: '/invitations/:invitationId',
   INVITATIONS_ACCEPT: '/invitations/accept',
+  /** @deprecated Use INVITATIONS_BY_SCOPE instead */
   INVITATIONS_BY_GROUP: '/invitations/by-group/:groupType/:groupId',
+  INVITATIONS_BY_SCOPE: '/invitations/by-scope/:scopeType/:scope',
   INVITATION_REINVITE: '/invitations/:invitationId/reinvite',
   SYNC_INTERNAL_INVITATION: '/invitations/sync-internal-invitation',
 } as const;
@@ -77,18 +79,28 @@ export function createVortexInvitationsAcceptRoute(): (req: Request, res: Respon
 }
 
 /**
- * Creates individual route handlers for invitations by group endpoint
+ * @deprecated Use createVortexInvitationsByScopeRoute instead
  */
 export function createVortexInvitationsByGroupRoute(): {
   get: (req: Request, res: Response) => Promise<Response>;
   delete: (req: Request, res: Response) => Promise<Response>;
 } {
+  return createVortexInvitationsByScopeRoute();
+}
+
+/**
+ * Creates individual route handlers for invitations by scope endpoint
+ */
+export function createVortexInvitationsByScopeRoute(): {
+  get: (req: Request, res: Response) => Promise<Response>;
+  delete: (req: Request, res: Response) => Promise<Response>;
+} {
   return {
     get: async function(req: Request, res: Response) {
-      return handleGetInvitationsByGroup(req, res);
+      return handleGetInvitationsByScope(req, res);
     },
     delete: async function(req: Request, res: Response) {
-      return handleDeleteInvitationsByGroup(req, res);
+      return handleDeleteInvitationsByScope(req, res);
     },
   };
 }
@@ -123,19 +135,26 @@ export function createVortexRoutes(): {
     delete: (req: Request, res: Response) => Promise<Response>;
   };
   invitationsAccept: (req: Request, res: Response) => Promise<Response>;
+  /** @deprecated Use invitationsByScope instead */
   invitationsByGroup: {
+    get: (req: Request, res: Response) => Promise<Response>;
+    delete: (req: Request, res: Response) => Promise<Response>;
+  };
+  invitationsByScope: {
     get: (req: Request, res: Response) => Promise<Response>;
     delete: (req: Request, res: Response) => Promise<Response>;
   };
   invitationReinvite: (req: Request, res: Response) => Promise<Response>;
   syncInternalInvitation: (req: Request, res: Response) => Promise<Response>;
 } {
+  const scopeRoutes = createVortexInvitationsByScopeRoute();
   return {
     jwt: createVortexJwtRoute(),
     invitations: createVortexInvitationsRoute(),
     invitation: createVortexInvitationRoute(),
     invitationsAccept: createVortexInvitationsAcceptRoute(),
-    invitationsByGroup: createVortexInvitationsByGroupRoute(),
+    invitationsByGroup: scopeRoutes, // Deprecated alias
+    invitationsByScope: scopeRoutes,
     invitationReinvite: createVortexReinviteRoute(),
     syncInternalInvitation: createVortexSyncInternalInvitationRoute(),
   };
@@ -165,8 +184,12 @@ export function createVortexRouter(): Router {
   router.get(VORTEX_ROUTES.INVITATION, routes.invitation.get);
   router.delete(VORTEX_ROUTES.INVITATION, routes.invitation.delete);
   router.post(VORTEX_ROUTES.INVITATIONS_ACCEPT, routes.invitationsAccept);
+  // Keep deprecated routes for backward compatibility
   router.get(VORTEX_ROUTES.INVITATIONS_BY_GROUP, routes.invitationsByGroup.get);
   router.delete(VORTEX_ROUTES.INVITATIONS_BY_GROUP, routes.invitationsByGroup.delete);
+  // Add new scope routes
+  router.get(VORTEX_ROUTES.INVITATIONS_BY_SCOPE, routes.invitationsByScope.get);
+  router.delete(VORTEX_ROUTES.INVITATIONS_BY_SCOPE, routes.invitationsByScope.delete);
   router.post(VORTEX_ROUTES.INVITATION_REINVITE, routes.invitationReinvite);
   router.post(VORTEX_ROUTES.SYNC_INTERNAL_INVITATION, routes.syncInternalInvitation);
 
@@ -199,8 +222,12 @@ export function registerVortexRoutes(app: { post: (path: string, handler: (req: 
   app.get(`${cleanBasePath}${VORTEX_ROUTES.INVITATION}`, routes.invitation.get);
   app.delete(`${cleanBasePath}${VORTEX_ROUTES.INVITATION}`, routes.invitation.delete);
   app.post(`${cleanBasePath}${VORTEX_ROUTES.INVITATIONS_ACCEPT}`, routes.invitationsAccept);
+  // Keep deprecated routes
   app.get(`${cleanBasePath}${VORTEX_ROUTES.INVITATIONS_BY_GROUP}`, routes.invitationsByGroup.get);
   app.delete(`${cleanBasePath}${VORTEX_ROUTES.INVITATIONS_BY_GROUP}`, routes.invitationsByGroup.delete);
+  // Add new scope routes
+  app.get(`${cleanBasePath}${VORTEX_ROUTES.INVITATIONS_BY_SCOPE}`, routes.invitationsByScope.get);
+  app.delete(`${cleanBasePath}${VORTEX_ROUTES.INVITATIONS_BY_SCOPE}`, routes.invitationsByScope.delete);
   app.post(`${cleanBasePath}${VORTEX_ROUTES.INVITATION_REINVITE}`, routes.invitationReinvite);
   app.post(`${cleanBasePath}${VORTEX_ROUTES.SYNC_INTERNAL_INVITATION}`, routes.syncInternalInvitation);
 }

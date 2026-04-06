@@ -2,7 +2,7 @@
   "name": "@teamvortexsoftware/vortex-express-5-sdk",
   "description": "Drop-in Express module for Vortex API integration",
   "author": "@teamvortexsoftware",
-  "version": "0.5.0",
+  "version": "0.7.0",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -48,10 +48,10 @@
     "@jest/globals": "29.7.0",
     "@teamvortexsoftware/eslint-config": "workspace:*",
     "@teamvortexsoftware/typescript-config": "workspace:*",
-    "@types/express": "^4.17.21",
+    "@types/express": "4.17.21",
     "@types/node": "catalog:",
     "eslint": "catalog:",
-    "express": "^5.1.0",
+    "express": "5.1.0",
     "jest": "29.7.0",
     "ts-jest": "catalog:",
     "typescript-eslint": "catalog:"
